@@ -288,4 +288,34 @@ function txt = myDynamicDataTip(~, event_obj, f_anon, fx_anon, fy_anon)
            ['Y: ', num2str(click_y, '%.4f')], ...
            ['Z (Level): ', num2str(current_z, '%.4f')], ...
            ['Slope: ', num2str(current_slope, '%.4f')]};
+
+    % Draw the derivative vector on the plane
+    ax = ancestor(event_obj.Target, 'axes');
+    if ~isempty(ax)
+        hold(ax, 'on');
+        
+        % Remove previously drawn derivative vectors
+        delete(findobj(ax, 'Tag', 'DerivativeVector'));
+        
+        % Scale vector for visualization (normalize to a fixed visual length)
+        if current_slope > 0
+            scale_len = 0.5;
+            u = (gx / current_slope) * scale_len;
+            v = (gy / current_slope) * scale_len;
+            
+            % Check if 3D plot based on the length of position array
+            if length(pos) >= 3
+                % In 3D, z-component of tangent vector is fx*dx + fy*dy
+                w = (gx*u + gy*v);
+                q = quiver3(ax, click_x, click_y, current_z, u, v, w, ...
+                            'Color', 'r', 'LineWidth', 2, 'MaxHeadSize', 2, 'AutoScale', 'off');
+            else
+                q = quiver(ax, click_x, click_y, u, v, ...
+                           'Color', 'r', 'LineWidth', 2, 'MaxHeadSize', 2, 'AutoScale', 'off');
+            end
+            set(q, 'Tag', 'DerivativeVector');
+        end
+        
+        hold(ax, 'off');
+    end
 end
