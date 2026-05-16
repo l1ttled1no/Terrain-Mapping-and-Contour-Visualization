@@ -12,10 +12,10 @@ clear; clc; close all;
 %% 1. Input Definitions
 % Define the function f(x,y) as a string.
 % Examples to try:
-%   'x^3 - 3*x + y^3 - 3*y'         (Has 1 min, 1 max, 2 saddle points)
-%   'sin(sqrt(x^2 + y^2))'          (Circular waves / ripple pattern)
-%   'x^2 + y^2'                     (Simple paraboloid bowl, 1 minimum)
-%   'x^2 - y^2'                     (Standard hyperbolic saddle)
+%   'x^3 - 3*x + y^3 - 3*y'          (Has 1 min, 1 max, 2 saddle points)
+%   'sin(sqrt(x^2 + y^2))'           (Circular waves / ripple pattern)
+%   'x^2 + y^2'                      (Simple paraboloid bowl, 1 minimum)
+%   'x^2 - y^2'                      (Standard hyperbolic saddle)
 % f_str = 'x^3 - 3*x + y^3 - 3*y';
 
 % f(x,y) = -0.1x^4 - 0.1y^4 + 0.8x^2 + 0.8y^2 + 1
@@ -257,4 +257,35 @@ try
     sgtitle(['Visualization & Critical Points of f(x,y) = ', f_str], 'FontSize', 14, 'FontWeight', 'bold');
 catch
     % Fallback for older MATLAB versions lacking sgtitle
+end
+
+
+%% 6. DYNAMIC SLOPE DISPLAY ON MOUSE CLICK 
+
+% Convert first-order partial derivative expressions (fx, fy) to Anonymous Functions
+fx_anon = matlabFunction(fx, 'Vars', [x, y]);
+fy_anon = matlabFunction(fy, 'Vars', [x, y]);
+
+% Enable Data Cursor Mode for the figure and assign the custom interactive callback
+dcm_obj = datacursormode(fig);
+set(dcm_obj, 'Enable', 'on', 'UpdateFcn', @(obj, event) myDynamicDataTip(obj, event, f_anon, fx_anon, fy_anon));
+
+% Local function to dynamically compute coordinates and the actual slope value upon mouse click
+function txt = myDynamicDataTip(~, event_obj, f_anon, fx_anon, fy_anon)
+    % Extract exact coordinates of the target cursor position
+    pos = event_obj.Position;
+    click_x = pos(1);
+    click_y = pos(2);
+    
+    % Compute the real Z level and localized slope magnitude at the clicked point
+    current_z = f_anon(click_x, click_y);
+    gx = fx_anon(click_x, click_y);
+    gy = fy_anon(click_x, click_y);
+    current_slope = sqrt(gx^2 + gy^2);
+    
+    % Format text lines displayed inside the interactive cursor box
+    txt = {['X: ', num2str(click_x, '%.4f')], ...
+           ['Y: ', num2str(click_y, '%.4f')], ...
+           ['Z (Level): ', num2str(current_z, '%.4f')], ...
+           ['Slope: ', num2str(current_slope, '%.4f')]};
 end
